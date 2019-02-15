@@ -5,49 +5,38 @@
 #include "kmeans.h"
 
 
-/*----< euclid_dist_2() >----------------------------------------------------*/
-/* square of Euclid distance between two multi-dimensional points            */
 __inline static
-float euclid_dist_2(int    numdims,  /* no. dimensions */
-                    float *coord1,   /* [numdims] */
-                    float *coord2)   /* [numdims] */
+float euclid_dist_2(int numdims, float *coord1, float *coord2)
 {
     int i;
     float ans=0.0;
-
     for (i=0; i<numdims; i++)
         ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-
     return(ans);
 }
 
-/*----< find_nearest_cluster() >---------------------------------------------*/
 __inline static
-int find_nearest_cluster(int     numClusters, /* no. clusters */
+int find_nearest_cluster(int numClusters, /* no. clusters */
                          int     numCoords,   /* no. coordinates */
                          float  *object,      /* [numCoords] */
                          float **clusters)    /* [numClusters][numCoords] */
 {
     int   index, i;
     float dist, min_dist;
-
-    /* find the cluster id that has min distance to object */
-    index    = 0;
+    index = 0;
     min_dist = euclid_dist_2(numCoords, object, clusters[0]);
 
     for (i=1; i<numClusters; i++) {
         dist = euclid_dist_2(numCoords, object, clusters[i]);
-        /* no need square root */
-        if (dist < min_dist) { /* find the min and its array index */
+        if (dist < min_dist) {
             min_dist = dist;
-            index    = i;
+            index = i;
         }
     }
     return(index);
 }
 
 
-/*----< kmeans_clustering() >------------------------------------------------*/
 /* return an array of cluster centers of size [numClusters][numCoords]       */
 float** omp_kmeans(int     is_perform_atomic, /* in: */
                    float **objects,           /* in: [numObjs][numCoords] */
@@ -74,7 +63,7 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
 
     /* allocate a 2D space for returning variable clusters[] (coordinates
        of cluster centers) */
-    clusters    = (float**) malloc(numClusters *             sizeof(float*));
+    clusters    = (float**) malloc(numClusters * sizeof(float*));
     assert(clusters != NULL);
     clusters[0] = (float*)  malloc(numClusters * numCoords * sizeof(float));
     assert(clusters[0] != NULL);
@@ -93,7 +82,7 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
     newClusterSize = (int*) calloc(numClusters, sizeof(int));
     assert(newClusterSize != NULL);
 
-    newClusters    = (float**) malloc(numClusters *            sizeof(float*));
+    newClusters    = (float**) malloc(numClusters * sizeof(float*));
     assert(newClusters != NULL);
     newClusters[0] = (float*)  calloc(numClusters * numCoords, sizeof(float));
     assert(newClusters[0] != NULL);
@@ -129,7 +118,6 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
         }
     }
 
-    if (_debug) timing = omp_get_wtime();
     do {
         delta = 0.0;
 
@@ -213,11 +201,6 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
 
         delta /= numObjs;
     } while (delta > threshold && loop++ < 500);
-
-    if (_debug) {
-        timing = omp_get_wtime() - timing;
-        printf("nloops = %2d (T = %7.4f)",loop,timing);
-    }
 
     if (!is_perform_atomic) {
         free(local_newClusterSize[0]);

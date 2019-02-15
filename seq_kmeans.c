@@ -6,7 +6,7 @@
 /*----< euclid_dist_2() >----------------------------------------------------*/
 /* square of Euclid distance between two multi-dimensional points            */
 __inline static
-float euclid_dist_2(int    numdims,  /* no. dimensions */
+float euclid_dist_2(int numdims,  /* no. dimensions */
                     float *coord1,   /* [numdims] */
                     float *coord2)   /* [numdims] */
 {
@@ -54,16 +54,16 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
                    int    *membership,   /* out: [numObjs] */
                    int    *loop_iterations)
 {
-    int      i, j, index, loop=0;
-    int     *newClusterSize; /* [numClusters]: no. objects assigned in each
+    int i, j, index, loop=0;
+    int *newClusterSize; /* [numClusters]: no. objects assigned in each
                                 new cluster */
-    float    delta;          /* % of objects change their clusters */
-    float  **clusters;       /* out: [numClusters][numCoords] */
-    float  **newClusters;    /* [numClusters][numCoords] */
+    float delta;          /* % of objects change their clusters */
+    float **clusters;       /* out: [numClusters][numCoords] */
+    float **newClusters;    /* [numClusters][numCoords] */
 
     /* allocate a 2D space for returning variable clusters[] (coordinates
        of cluster centers) */
-    clusters    = (float**) malloc(numClusters *             sizeof(float*));
+    clusters = (float**) malloc(numClusters *             sizeof(float*));
     assert(clusters != NULL);
     clusters[0] = (float*)  malloc(numClusters * numCoords * sizeof(float));
     assert(clusters[0] != NULL);
@@ -82,7 +82,7 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
     newClusterSize = (int*) calloc(numClusters, sizeof(int));
     assert(newClusterSize != NULL);
 
-    newClusters    = (float**) malloc(numClusters *            sizeof(float*));
+    newClusters = (float**) malloc(numClusters *  sizeof(float*));
     assert(newClusters != NULL);
     newClusters[0] = (float*)  calloc(numClusters * numCoords, sizeof(float));
     assert(newClusters[0] != NULL);

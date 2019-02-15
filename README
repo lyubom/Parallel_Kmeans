@@ -1,33 +1,15 @@
-This software is derived from Professor Wei-keng Liao's parallel k-means
-clustering code obtained on November 21, 2010 from
- http://users.eecs.northwestern.edu/~wkliao/Kmeans/index.html
-(http://users.eecs.northwestern.edu/~wkliao/Kmeans/simple_kmeans.tar.gz).
-
-We have used http://www.github.com/serban/kmeans as a reference for the implementations
-shown above.
-
-# ------------------------------------------------------------------------------
 Parallel K-Means Data Clustering
 
 The software package of parallel K-means data clustering contains the
 followings:
 
   * A parallel implementation using OpenMP and C
-  * A parallel implementation using CUDA and C
   * A sequential version in C
 
 
-To clone:
-git clone git@github.com:Guzzler/K-means-Parallel-Programming.git
-
-To compile:
-You will need the NVIDIA CUDA toolkit, which contains nvcc, to build the CUDA
-version. It works fine in concert with gcc.
-
 To run:
-  * On running a 'make clean' or the 'benchmark.sh' script the following executables will be produced -
+  * On running a 'make' the following executables will be produced -
      o "omp_main" for OpenMP version
-     o "cuda_main" for CUDA version
      o "seq_main" for sequential version
 
   * The list of available command-line arguments can be obtained by
@@ -46,18 +28,11 @@ To run:
 Input file format:
 The executables read an input file that stores the data points to be
 clustered. A few example files are provided in the sub-directory
-./Testcases. The input files can be in two formats: ASCII text and raw
-binary.
+./Testcases. The input files can be in ASCII text format.
 
   * ASCII text format:
     o Each line contains the coordinates of a single data point
     o The number of coordinates must be equal for all data points
-  * Raw binary format:
-    o There is a header of 2 integers.
-    o The first 4-byte integer must be the number of data points.
-    o The second integer must be the number of coordinates.
-    o The rest of the file contains the coordinates of all data
-      points and each coordinate is of type 4-byte float.
 
 Output files: There are two output files:
   * Coordinates of cluster centers

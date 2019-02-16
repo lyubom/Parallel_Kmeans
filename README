@@ -8,20 +8,11 @@ followings:
 
 To run:
   * On running a 'make' the following executables will be produced -
-     o "omp_main" for OpenMP version
-     o "seq_main" for sequential version
+     o "parallel_main" for OpenMP version
+     o "simple_main" for simple sequential version
 
-  * The list of available command-line arguments can be obtained by
-    running -h option
-     o For example, running command "omp_main -h" will produce:
-       Usage: main [switches] -i filename -n num_clusters
-             -i filename    : file containing data to be clustered
-             -n num_clusters: number of clusters (K must > 1)
-             -t threshold   : threshold value (default 0.0010)
-             -p nproc       : number of threads (default system allocated)
-             -a             : perform atomic OpenMP pragma (default no)
-             
-  * To run the parallel version
+  * To run the parallel version: "parallel_main filename num_clusters number_of_threads"
+  * To run the sequential version: simple_main filename num_clusters"
 
 Input file format:
 The executables read an input file that stores the data points to be

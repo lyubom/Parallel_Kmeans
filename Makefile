@@ -19,7 +19,7 @@ OMP_SRC     = parallel_main.c parallel_kmeans.c
 
 OMP_OBJ     = $(OMP_SRC:%.c=%.o)
 
-parallel_kmeans.o: omp_kmeans.c $(H_FILES)
+parallel_kmeans.o: parallel_kmeans.c $(H_FILES)
 	$(CC) $(CFLAGS) $(OMPFLAGS) -c parallel_kmeans.c
 
 parallel: parallel_main

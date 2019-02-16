@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
     omp_set_num_threads(nthreads);
 
-    objects = file_read(filename, &numObjs, &numCoords);
+    objects = readf(filename, &numObjs, &numCoords);
     if (objects == NULL) exit(1);
 
     /* start the core computation -------------------------------------------*/
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     timing = omp_get_wtime();
     clustering_timing = timing - clustering_timing;
 
-    file_write(numClusters, numObjs, numCoords, clusters, membership);
+    writef(numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);

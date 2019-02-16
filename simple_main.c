@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     int numClusters = atoi(argv[2]);
 
     /* read data points from file ------------------------------------------*/
-    objects = file_read(filename, &numObjs, &numCoords);
+    objects = readf(filename, &numObjs, &numCoords);
     if (objects == NULL) exit(1);
 
     /* start the timer for the core computation -----------------------------*/
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     timing = ((double)(end - start ))/ CLOCKS_PER_SEC;
 
 
-    file_write(numClusters, numObjs, numCoords, clusters, membership);
+    writef(numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);

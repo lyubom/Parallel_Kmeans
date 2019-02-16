@@ -26,7 +26,7 @@ int closest_cluster(int clusters_number, int coordinates_number, float  *observa
     return class;
 }
 
-float** file_read(char *filename, int *observ_num, int *coordinates_number)
+float** readf(char *filename, int *observ_num, int *coordinates_number)
 {
     float **observations;
     int i, j, size;
@@ -79,7 +79,7 @@ float** file_read(char *filename, int *observ_num, int *coordinates_number)
     return observations;
 }
 
-int file_write(int clusters_number, int observ_num, int coordinates_number,
+int writef(int clusters_number, int observ_num, int coordinates_number,
                float **clusters, int *result)
 {
     FILE *file;

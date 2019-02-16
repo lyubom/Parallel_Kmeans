@@ -13,5 +13,5 @@ float** seq_kmeans(float**, int, int, int, float, int*, int*);
 float compute_distance(int, float*, float*);
 int closest_cluster(int, int, float*, float**);
 
-float** file_read(char*, int*, int*);
-int file_write(int, int, int, float**, int*);
+float** readf(char*, int*, int*);
+int writef(int, int, int, float**, int*);

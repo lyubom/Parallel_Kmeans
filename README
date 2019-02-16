@@ -20,6 +20,8 @@ To run:
              -t threshold   : threshold value (default 0.0010)
              -p nproc       : number of threads (default system allocated)
              -a             : perform atomic OpenMP pragma (default no)
+             
+  * To run the parallel version
 
 Input file format:
 The executables read an input file that stores the data points to be

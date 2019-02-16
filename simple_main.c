@@ -65,7 +65,6 @@ int main(int argc, char **argv) {
     /* start the timer for the core computation -----------------------------*/
     /* membership: the cluster id for each data object */
     membership = (int*) malloc(numObjs * sizeof(int));
-    assert(membership != NULL);
 
     clusters = seq_kmeans(objects, numCoords, numObjs, numClusters, threshold,
                           membership, &loop_iterations);

@@ -79,7 +79,6 @@ int main(int argc, char **argv) {
     /* start the core computation -------------------------------------------*/
     /* membership: the cluster id for each data object */
     membership = (int*) malloc(numObjs * sizeof(int));
-    assert(membership != NULL);
 
     clusters = omp_kmeans(is_perform_atomic, objects, numCoords, numObjs,
                           numClusters, threshold, membership);

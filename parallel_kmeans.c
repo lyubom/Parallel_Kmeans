@@ -5,7 +5,6 @@
 #include "kmeans.h"
 
 
-__inline static
 float euclid_dist_2(int numdims, float *coord1, float *coord2)
 {
     int i;
@@ -15,7 +14,6 @@ float euclid_dist_2(int numdims, float *coord1, float *coord2)
     return(ans);
 }
 
-__inline static
 int find_nearest_cluster(int numClusters, /* no. clusters */
                          int     numCoords,   /* no. coordinates */
                          float  *object,      /* [numCoords] */
@@ -64,9 +62,7 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
     /* allocate a 2D space for returning variable clusters[] (coordinates
        of cluster centers) */
     clusters    = (float**) malloc(numClusters * sizeof(float*));
-    assert(clusters != NULL);
     clusters[0] = (float*)  malloc(numClusters * numCoords * sizeof(float));
-    assert(clusters[0] != NULL);
     for (i=1; i<numClusters; i++)
         clusters[i] = clusters[i-1] + numCoords;
 
@@ -80,12 +76,9 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
 
     /* need to initialize newClusterSize and newClusters[0] to all 0 */
     newClusterSize = (int*) calloc(numClusters, sizeof(int));
-    assert(newClusterSize != NULL);
 
     newClusters    = (float**) malloc(numClusters * sizeof(float*));
-    assert(newClusters != NULL);
     newClusters[0] = (float*)  calloc(numClusters * numCoords, sizeof(float));
-    assert(newClusters[0] != NULL);
     for (i=1; i<numClusters; i++)
         newClusters[i] = newClusters[i-1] + numCoords;
 
@@ -94,26 +87,21 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
            then thread 0 does an array reduction on them. This approach
            should be faster */
         local_newClusterSize    = (int**) malloc(nthreads * sizeof(int*));
-        assert(local_newClusterSize != NULL);
         local_newClusterSize[0] = (int*)  calloc(nthreads*numClusters,
                                                  sizeof(int));
-        assert(local_newClusterSize[0] != NULL);
         for (i=1; i<nthreads; i++)
             local_newClusterSize[i] = local_newClusterSize[i-1]+numClusters;
 
         /* local_newClusters is a 3D array */
         local_newClusters    =(float***)malloc(nthreads * sizeof(float**));
-        assert(local_newClusters != NULL);
         local_newClusters[0] =(float**) malloc(nthreads * numClusters *
                                                sizeof(float*));
-        assert(local_newClusters[0] != NULL);
         for (i=1; i<nthreads; i++)
             local_newClusters[i] = local_newClusters[i-1] + numClusters;
         for (i=0; i<nthreads; i++) {
             for (j=0; j<numClusters; j++) {
                 local_newClusters[i][j] = (float*)calloc(numCoords,
                                                          sizeof(float));
-                assert(local_newClusters[i][j] != NULL);
             }
         }
     }

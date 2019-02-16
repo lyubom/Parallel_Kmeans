@@ -8,11 +8,7 @@
 
 #define MAX_CHAR_PER_LINE 128
 
-
-// file_read()
-float** file_read(char *filename,      /* input file name */
-                  int  *numObjs,       /* no. data objects (local) */
-                  int  *numCoords)     /* no. coordinates */
+float** file_read(char *filename, int  *numObjs, int  *numCoords)
 {
     float **objects;
     int i, j, len;
@@ -22,14 +18,13 @@ float** file_read(char *filename,      /* input file name */
     int lineLen;
 
     if ((infile = fopen(filename, "r")) == NULL) {
-      fprintf(stderr, "Error: no such file (%s)\n", filename);
+      fprintf(stderr, "Error: no such file\n");
       return NULL;
     }
 
     /* first find the number of objects */
     lineLen = MAX_CHAR_PER_LINE;
     line = (char*) malloc(lineLen);
-    assert(line != NULL);
 
     (*numObjs) = 0;
     while (fgets(line, lineLen, infile) != NULL) {
@@ -42,10 +37,8 @@ float** file_read(char *filename,      /* input file name */
             /* increase lineLen */
             lineLen += MAX_CHAR_PER_LINE;
             line = (char*) realloc(line, lineLen);
-            assert(line != NULL);
 
             ret = fgets(line, lineLen, infile);
-            assert(ret != NULL);
         }
 
         if (strtok(line, " \t\n") != 0)
@@ -67,9 +60,7 @@ float** file_read(char *filename,      /* input file name */
     /* allocate space for objects[][] and read all objects */
     len = (*numObjs) * (*numCoords);
     objects = (float**)malloc((*numObjs) * sizeof(float*));
-    assert(objects != NULL);
     objects[0] = (float*) malloc(len * sizeof(float));
-    assert(objects[0] != NULL);
     for (i=1; i<(*numObjs); i++)
         objects[i] = objects[i-1] + (*numCoords);
 

@@ -5,18 +5,20 @@
 
 /*----< euclid_dist_2() >----------------------------------------------------*/
 /* square of Euclid distance between two multi-dimensional points            */
-__inline static
-float euclid_dist_2(int numdims, float *coord1, float *coord2)
+float euclid_dist_2(int numdims,  /* no. dimensions */
+                    float *coord1,   /* [numdims] */
+                    float *coord2)   /* [numdims] */
 {
     int i;
     float ans=0.0;
+
     for (i=0; i<numdims; i++)
         ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
+
     return(ans);
 }
 
 /*----< find_nearest_cluster() >---------------------------------------------*/
-__inline static
 int find_nearest_cluster(int     numClusters, /* no. clusters */
                          int     numCoords,   /* no. coordinates */
                          float  *object,      /* [numCoords] */
@@ -60,9 +62,7 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
     /* allocate a 2D space for returning variable clusters[] (coordinates
        of cluster centers) */
     clusters = (float**) malloc(numClusters *             sizeof(float*));
-    assert(clusters != NULL);
     clusters[0] = (float*)  malloc(numClusters * numCoords * sizeof(float));
-    assert(clusters[0] != NULL);
     for (i=1; i<numClusters; i++)
         clusters[i] = clusters[i-1] + numCoords;
 
@@ -76,12 +76,9 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
 
     /* need to initialize newClusterSize and newClusters[0] to all 0 */
     newClusterSize = (int*) calloc(numClusters, sizeof(int));
-    assert(newClusterSize != NULL);
 
     newClusters = (float**) malloc(numClusters *  sizeof(float*));
-    assert(newClusters != NULL);
     newClusters[0] = (float*)  calloc(numClusters * numCoords, sizeof(float));
-    assert(newClusters[0] != NULL);
     for (i=1; i<numClusters; i++)
         newClusters[i] = newClusters[i-1] + numCoords;
 

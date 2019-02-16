@@ -6,16 +6,12 @@
 /*----< euclid_dist_2() >----------------------------------------------------*/
 /* square of Euclid distance between two multi-dimensional points            */
 __inline static
-float euclid_dist_2(int numdims,  /* no. dimensions */
-                    float *coord1,   /* [numdims] */
-                    float *coord2)   /* [numdims] */
+float euclid_dist_2(int numdims, float *coord1, float *coord2)
 {
     int i;
     float ans=0.0;
-
     for (i=0; i<numdims; i++)
         ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-
     return(ans);
 }
 

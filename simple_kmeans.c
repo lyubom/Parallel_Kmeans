@@ -1,48 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "kmeans.h"
 
-/*----< euclid_dist_2() >----------------------------------------------------*/
-/* square of Euclid distance between two multi-dimensional points            */
-float euclid_dist_2(int numdims,  /* no. dimensions */
-                    float *coord1,   /* [numdims] */
-                    float *coord2)   /* [numdims] */
-{
-    int i;
-    float ans=0.0;
-
-    for (i=0; i<numdims; i++)
-        ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-
-    return(ans);
-}
-
-/*----< find_nearest_cluster() >---------------------------------------------*/
-int find_nearest_cluster(int     numClusters, /* no. clusters */
-                         int     numCoords,   /* no. coordinates */
-                         float  *object,      /* [numCoords] */
-                         float **clusters)    /* [numClusters][numCoords] */
-{
-    int   index, i;
-    float dist, min_dist;
-
-    /* find the cluster id that has min distance to object */
-    index    = 0;
-    min_dist = euclid_dist_2(numCoords, object, clusters[0]);
-
-    for (i=1; i<numClusters; i++) {
-        dist = euclid_dist_2(numCoords, object, clusters[i]);
-        /* no need square root */
-        if (dist < min_dist) { /* find the min and its array index */
-            min_dist = dist;
-            index    = i;
-        }
-    }
-    return(index);
-}
-
-/*----< seq_kmeans() >-------------------------------------------------------*/
 /* return an array of cluster centers of size [numClusters][numCoords]       */
 float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
                    int     numCoords,    /* no. features */
@@ -100,7 +57,6 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
             for (j=0; j<numCoords; j++)
                 newClusters[index][j] += objects[i][j];
         }
-
         /* average the sum and replace old cluster centers with newClusters */
         for (i=0; i<numClusters; i++) {
             for (j=0; j<numCoords; j++) {

@@ -1,14 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>     /* strtok() */
-#include <sys/types.h>  /* open() */
-#include <unistd.h>     /* read(), close() */
-
 #include "kmeans.h"
 
 #define MAX_CHAR_PER_LINE 128
 
-float** file_read(char *filename, int  *numObjs, int  *numCoords)
+float euclid_dist_2(int numdims, float *coord1, float *coord2)
+{
+    int i;
+    float ans=0.0;
+    for (i=0; i<numdims; i++)
+        ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
+    return(ans);
+}
+
+int find_nearest_cluster(int numClusters,int numCoords,float  *object,float **clusters)
+{
+    int   index, i;
+    float dist, min_dist;
+    index = 0;
+    min_dist = euclid_dist_2(numCoords, object, clusters[0]);
+
+    for (i=1; i<numClusters; i++) {
+        dist = euclid_dist_2(numCoords, object, clusters[i]);
+        if (dist < min_dist) {
+            min_dist = dist;
+            index = i;
+        }
+    }
+    return(index);
+}
+
+float** file_read(char *filename, int *numObjs, int *numCoords)
 {
     float **objects;
     int i, j, len;
@@ -79,7 +99,6 @@ float** file_read(char *filename, int  *numObjs, int  *numCoords)
     return objects;
 }
 
-/*---< file_write() >---------------------------------------------------------*/
 int file_write(char      *filename,     /* input file name */
                int        numClusters,  /* no. clusters */
                int        numObjs,      /* no. data objects */

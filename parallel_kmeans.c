@@ -1,63 +1,25 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <omp.h>
 #include "kmeans.h"
 
-
-float euclid_dist_2(int numdims, float *coord1, float *coord2)
-{
-    int i;
-    float ans=0.0;
-    for (i=0; i<numdims; i++)
-        ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-    return(ans);
-}
-
-int find_nearest_cluster(int numClusters, /* no. clusters */
-                         int     numCoords,   /* no. coordinates */
-                         float  *object,      /* [numCoords] */
-                         float **clusters)    /* [numClusters][numCoords] */
-{
-    int   index, i;
-    float dist, min_dist;
-    index = 0;
-    min_dist = euclid_dist_2(numCoords, object, clusters[0]);
-
-    for (i=1; i<numClusters; i++) {
-        dist = euclid_dist_2(numCoords, object, clusters[i]);
-        if (dist < min_dist) {
-            min_dist = dist;
-            index = i;
-        }
-    }
-    return(index);
-}
-
-
 /* return an array of cluster centers of size [numClusters][numCoords]       */
-float** omp_kmeans(int     is_perform_atomic, /* in: */
+float** omp_kmeans(int is_perform_atomic, /* in: */
                    float **objects,           /* in: [numObjs][numCoords] */
-                   int     numCoords,         /* no. coordinates */
-                   int     numObjs,           /* no. objects */
-                   int     numClusters,       /* no. clusters */
-                   float   threshold,         /* % objects change membership */
-                   int    *membership)        /* out: [numObjs] */
+                   int numCoords,         /* no. coordinates */
+                   int numObjs,           /* no. objects */
+                   int numClusters,       /* no. clusters */
+                   float threshold,         /* % objects change membership */
+                   int *membership,        /* out: [numObjs] */
+                   int nthreads)
 {
 
-    int      i, j, k, index, loop=0;
-    int     *newClusterSize; /* [numClusters]: no. objects assigned in each
-                                new cluster */
-    float    delta;          /* % of objects change their clusters */
-    float  **clusters;       /* out: [numClusters][numCoords] */
-    float  **newClusters;    /* [numClusters][numCoords] */
-    double   timing;
+    int i, j, k, index, loop=0;
+    int *newClusterSize; /* [numClusters]: no. objects assigned in each                                 new cluster */
+    float delta;          /* % of objects change their clusters */
+    float **clusters;       /* out: [numClusters][numCoords] */
+    float **newClusters;    /* [numClusters][numCoords] */
 
-    int      nthreads;             /* no. threads */
-    int    **local_newClusterSize; /* [nthreads][numClusters] */
+    int **local_newClusterSize; /* [nthreads][numClusters] */
     float ***local_newClusters;    /* [nthreads][numClusters][numCoords] */
 
-    nthreads = omp_get_max_threads();
 
     /* allocate a 2D space for returning variable clusters[] (coordinates
        of cluster centers) */
@@ -136,8 +98,7 @@ float** omp_kmeans(int     is_perform_atomic, /* in: */
             }
         }
         else {
-            #pragma omp parallel \
-                    shared(objects,clusters,membership,local_newClusters,local_newClusterSize)
+            #pragma omp parallel shared(objects,clusters,membership,local_newClusters,local_newClusterSize)
             {
                 int tid = omp_get_thread_num();
                 #pragma omp for \

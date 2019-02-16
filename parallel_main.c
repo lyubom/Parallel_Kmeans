@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
 #include "kmeans.h"
 
 int main(int argc, char **argv)
@@ -29,12 +26,13 @@ int main(int argc, char **argv)
     clustering_timing = omp_get_wtime();
     membership = (int*) malloc(numObjs * sizeof(int));
     clusters = omp_kmeans(is_perform_atomic, objects, numCoords, numObjs,
-                          numClusters, threshold, membership);
+                          numClusters, threshold, membership, nthreads);
     free(objects[0]);
     free(objects);
 
     timing = omp_get_wtime();
     clustering_timing = timing - clustering_timing;
+
 
     file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
 

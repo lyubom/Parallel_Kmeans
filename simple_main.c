@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "kmeans.h"
 
 int main(int argc, char **argv)
@@ -8,7 +6,8 @@ int main(int argc, char **argv)
     int *membership;    /* [numObjs] */
     float **objects;       /* [numObjs][numCoords] data objects */
     float **clusters;      /* [numClusters][numCoords] cluster center */
-    double timing, clustering_timing;
+    double timing;
+    clock_t end, start;
     int loop_iterations;
     float threshold = 0.001;
     char *filename = argv[1];
@@ -20,14 +19,15 @@ int main(int argc, char **argv)
 
     /* start the timer for the core computation -----------------------------*/
     /* membership: the cluster id for each data object */
-    clustering_timing = wtime();
+    start = clock();
     membership = (int*) malloc(numObjs * sizeof(int));
     clusters = seq_kmeans(objects, numCoords, numObjs, numClusters, threshold,
                           membership, &loop_iterations);
     free(objects[0]);
     free(objects);
-    timing = wtime();
-    clustering_timing = timing - clustering_timing;
+    end = clock();
+    timing = ((double)(end - start ))/ CLOCKS_PER_SEC;
+
 
     file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
 
@@ -42,6 +42,6 @@ int main(int argc, char **argv)
     printf("numClusters   = %d\n", numClusters);
     printf("threshold     = %.4f\n", threshold);
     printf("Loop iterations    = %d\n", loop_iterations);
-    printf("Computation time = %10.4f sec\n", clustering_timing);
+    printf("Computation time = %10.4f sec\n", timing);
     return(0);
 }

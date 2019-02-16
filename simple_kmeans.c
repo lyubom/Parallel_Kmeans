@@ -43,7 +43,7 @@ float** seq_kmeans(float **objects,      /* in: [numObjs][numCoords] */
         delta = 0.0;
         for (i=0; i<numObjs; i++) {
             /* find the array index of nestest cluster center */
-            index = find_nearest_cluster(numClusters, numCoords, objects[i],
+            index = closest_cluster(numClusters, numCoords, objects[i],
                                          clusters);
 
             /* if membership changes, increase delta by 1 */

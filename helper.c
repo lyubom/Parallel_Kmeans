@@ -1,136 +1,106 @@
 #include "kmeans.h"
 
-#define MAX_CHAR_PER_LINE 128
+#define MAX_LINE_LEN 256
 
-float euclid_dist_2(int numdims, float *coord1, float *coord2)
+float compute_distance(int dimentions, float *point1, float *point2)
 {
     int i;
-    float ans=0.0;
-    for (i=0; i<numdims; i++)
-        ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-    return(ans);
+    float distance = 0.0;
+    for (i=0; i<dimentions; i++)
+        distance += (point1[i]-point2[i]) * (point1[i]-point2[i]);
+    return distance;
 }
 
-int find_nearest_cluster(int numClusters,int numCoords,float  *object,float **clusters)
+int closest_cluster(int clusters_number, int coordinates_number, float  *observation, float **clusters)
 {
-    int   index, i;
-    float dist, min_dist;
-    index = 0;
-    min_dist = euclid_dist_2(numCoords, object, clusters[0]);
-
-    for (i=1; i<numClusters; i++) {
-        dist = euclid_dist_2(numCoords, object, clusters[i]);
-        if (dist < min_dist) {
-            min_dist = dist;
-            index = i;
+    int class = 0, i;
+    float d, min_d;
+    min_d = compute_distance(coordinates_number, observation, clusters[0]);
+    for (i=1; i<clusters_number; i++) {
+        d = compute_distance(coordinates_number, observation, clusters[i]);
+        if (d < min_d) {
+            min_d = d;
+            class = i;
         }
     }
-    return(index);
+    return class;
 }
 
-float** file_read(char *filename, int *numObjs, int *numCoords)
+float** file_read(char *filename, int *observ_num, int *coordinates_number)
 {
-    float **objects;
-    int i, j, len;
+    float **observations;
+    int i, j, size;
+    FILE *file;
+    char *row;
+    int rowLength;
 
-    FILE *infile;
-    char *line, *ret;
-    int lineLen;
-
-    if ((infile = fopen(filename, "r")) == NULL) {
-      fprintf(stderr, "Error: no such file\n");
-      return NULL;
+    file = fopen(filename, "r");
+    if(file == NULL) {
+        fprintf(stderr, "Can not open file.\n");
     }
 
-    /* first find the number of objects */
-    lineLen = MAX_CHAR_PER_LINE;
-    line = (char*) malloc(lineLen);
+    rowLength = MAX_LINE_LEN;
+    row = (char*) malloc(rowLength);
 
-    (*numObjs) = 0;
-    while (fgets(line, lineLen, infile) != NULL) {
-        /* check each line to find the max line length */
-        while (strlen(line) == lineLen-1) {
-            /* this line read is not complete */
-            len = strlen(line);
-            fseek(infile, -len, SEEK_CUR);
-
-            /* increase lineLen */
-            lineLen += MAX_CHAR_PER_LINE;
-            line = (char*) realloc(line, lineLen);
-
-            ret = fgets(line, lineLen, infile);
-        }
-
-        if (strtok(line, " \t\n") != 0)
-            (*numObjs)++;
+    (*observ_num) = 0;
+    // find max length of row
+    while (fgets(row, rowLength, file) != NULL) {
+        if (strtok(row, " \t\n") != 0)
+            (*observ_num)++;
     }
-    rewind(infile);
+    rewind(file);
 
-    /* find the no. objects of each object */
-    (*numCoords) = 0;
-    while (fgets(line, lineLen, infile) != NULL) {
-        if (strtok(line, " \t\n") != 0) {
-            /* ignore the id (first coordiinate): numCoords = 1; */
-            while (strtok(NULL, " ,\t\n") != NULL) (*numCoords)++;
-            break; /* this makes read from 1st object */
+    //find the number of coloms of each observation
+    (*coordinates_number) = 0;
+    while (fgets(row, rowLength, file) != NULL) {
+        if (strtok(row, " \t\n") != 0) {
+            while (strtok(NULL, " ,\t\n") != NULL)
+                (*coordinates_number)++;
+            break;
         }
     }
-    rewind(infile);
+    rewind(file);
 
-    /* allocate space for objects[][] and read all objects */
-    len = (*numObjs) * (*numCoords);
-    objects = (float**)malloc((*numObjs) * sizeof(float*));
-    objects[0] = (float*) malloc(len * sizeof(float));
-    for (i=1; i<(*numObjs); i++)
-        objects[i] = objects[i-1] + (*numCoords);
+    size = (*observ_num) * (*coordinates_number);
+    observations = (float**) malloc((*observ_num) * sizeof(float*));
+    observations[0] = (float*) malloc(size * sizeof(float));
+    for (i=1; i<(*observ_num); i++)
+        observations[i] = observations[i-1] + (*coordinates_number);
 
     i = 0;
-    /* read all objects */
-    while (fgets(line, lineLen, infile) != NULL) {
-        if (strtok(line, " \t\n") == NULL) continue;
-        for (j=0; j<(*numCoords); j++)
-            objects[i][j] = atof(strtok(NULL, " ,\t\n"));
+    while (fgets(row, rowLength, file) != NULL) {
+        if (strtok(row, " \t\n") == NULL) continue;
+        for (j=0; j<(*coordinates_number); j++)
+            observations[i][j] = atof(strtok(NULL, " ,\t\n"));
         i++;
     }
-
-    fclose(infile);
-    free(line);
-
-    return objects;
+    fclose(file);
+    free(row);
+    return observations;
 }
 
-int file_write(char      *filename,     /* input file name */
-               int        numClusters,  /* no. clusters */
-               int        numObjs,      /* no. data objects */
-               int        numCoords,    /* no. coordinates (local) */
-               float    **clusters,     /* [numClusters][numCoords] centers */
-               int       *membership)   /* [numObjs] */
+int file_write(int clusters_number, int observ_num, int coordinates_number,
+               float **clusters, int *result)
 {
-    FILE *fptr;
+    FILE *file;
     int i, j;
-    char outFileName[1024];
-
-    /* output: the coordinates of the cluster centres ----------------------*/
-    sprintf(outFileName, "%s.cluster_centres", filename);
-    printf("Writing coordinates of K=%d cluster centers to file \"%s\"\n",
-           numClusters, outFileName);
-    fptr = fopen(outFileName, "w");
-    for (i=0; i<numClusters; i++) {
-        fprintf(fptr, "%d ", i);
-        for (j=0; j<numCoords; j++)
-            fprintf(fptr, "%f ", clusters[i][j]);
-        fprintf(fptr, "\n");
+    char filename[1024];
+    strcpy(filename, "data/centroids.txt");
+    printf("Write coordinates of centroids to \"%s\"\n", filename);
+    file = fopen(filename, "w");
+    for (i=0; i<clusters_number; i++) {
+        fprintf(file, "%d ", i);
+        for (j=0; j<coordinates_number; j++)
+            fprintf(file, "%f ", clusters[i][j]);
+        fprintf(file, "\n");
     }
-    fclose(fptr);
+    fclose(file);
 
-    /* output: the closest cluster centre to each of the data points --------*/
-    sprintf(outFileName, "%s.membership", filename);
-    printf("Writing membership of N=%d data objects to file \"%s\"\n",
-           numObjs, outFileName);
-    fptr = fopen(outFileName, "w");
-    for (i=0; i<numObjs; i++)
-        fprintf(fptr, "%d %d\n", i, membership[i]);
-    fclose(fptr);
-
+    strcpy(filename, "data/clustering.txt");
+    printf("Write allocation of %d oservations to \"%s\"\n", observ_num, filename);
+    file = fopen(filename, "w");
+    for (i=0; i<observ_num; i++)
+        fprintf(file, "%d %d\n", i, result[i]);
+    fclose(file);
     return 1;
 }

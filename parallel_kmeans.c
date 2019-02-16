@@ -80,7 +80,7 @@ float** omp_kmeans(int is_perform_atomic, /* in: */
                     reduction(+:delta)
             for (i=0; i<numObjs; i++) {
                 /* find the array index of nestest cluster center */
-                index = find_nearest_cluster(numClusters, numCoords, objects[i],
+                index = closest_cluster(numClusters, numCoords, objects[i],
                                              clusters);
 
                 /* if membership changes, increase delta by 1 */
@@ -108,7 +108,7 @@ float** omp_kmeans(int is_perform_atomic, /* in: */
                             reduction(+:delta)
                 for (i=0; i<numObjs; i++) {
                     /* find the array index of nestest cluster center */
-                    index = find_nearest_cluster(numClusters, numCoords,
+                    index = closest_cluster(numClusters, numCoords,
                                                  objects[i], clusters);
 
                     /* if membership changes, increase delta by 1 */

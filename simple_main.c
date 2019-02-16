@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     timing = ((double)(end - start ))/ CLOCKS_PER_SEC;
 
 
-    file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
+    file_write(numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);

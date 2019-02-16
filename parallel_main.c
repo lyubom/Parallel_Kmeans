@@ -29,12 +29,10 @@ int main(int argc, char **argv)
                           numClusters, threshold, membership, nthreads);
     free(objects[0]);
     free(objects);
-
     timing = omp_get_wtime();
     clustering_timing = timing - clustering_timing;
 
-
-    file_write(filename, numClusters, numObjs, numCoords, clusters, membership);
+    file_write(numClusters, numObjs, numCoords, clusters, membership);
 
     free(membership);
     free(clusters[0]);

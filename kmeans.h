@@ -10,8 +10,8 @@
 float** omp_kmeans(int, float**, int, int, int, float, int*, int);
 float** seq_kmeans(float**, int, int, int, float, int*, int*);
 
-float euclid_dist_2(int, float*, float*);
-int find_nearest_cluster(int, int, float*, float**);
+float compute_distance(int, float*, float*);
+int closest_cluster(int, int, float*, float**);
 
 float** file_read(char*, int*, int*);
-int file_write(char*, int, int, int, float**, int*);
+int file_write(int, int, int, float**, int*);

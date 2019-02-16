@@ -4,35 +4,35 @@ int main(int argc, char **argv)
 {
     int is_perform_atomic;
 
-    int numCoords, numObjs;
-    int *membership;    /* [numObjs] */
-    float **objects;       /* [numObjs][numCoords] data objects */
-    float **clusters;      /* [numClusters][numCoords] cluster center */
-    double timing, clustering_timing;
+    int coordinates_number, observ_num;
+    int *membership;    /* [observ_num] */
+    float **observations;       /* [observ_num][coordinates_number] data observations */
+    float **clusters;      /* [clusters_number][coordinates_number] cluster center */
+    double end, start;
     float threshold = 0.001;
     char *filename = argv[1];
-    int numClusters = atoi(argv[2]);
-    int nthreads = atoi(argv[3]);
+    int clusters_number = atoi(argv[2]);
+    int threads_number = atoi(argv[3]);
 
     is_perform_atomic = 0;
 
-    omp_set_num_threads(nthreads);
+    omp_set_num_threads(threads_number);
 
-    objects = readf(filename, &numObjs, &numCoords);
-    if (objects == NULL) exit(1);
+    observations = readf(filename, &observ_num, &coordinates_number);
+    if (observations == NULL) exit(1);
 
     /* start the core computation -------------------------------------------*/
     /* membership: the cluster id for each data object */
-    clustering_timing = omp_get_wtime();
-    membership = (int*) malloc(numObjs * sizeof(int));
-    clusters = omp_kmeans(is_perform_atomic, objects, numCoords, numObjs,
-                          numClusters, threshold, membership, nthreads);
-    free(objects[0]);
-    free(objects);
-    timing = omp_get_wtime();
-    clustering_timing = timing - clustering_timing;
+    start = omp_get_wtime();
+    membership = (int*) malloc(observ_num * sizeof(int));
+    clusters = parallel_kmeans(is_perform_atomic, observations, coordinates_number, observ_num,
+                          clusters_number, threshold, membership, threads_number);
+    free(observations[0]);
+    free(observations);
+    end = omp_get_wtime();
+    start = end - start;
 
-    writef(numClusters, numObjs, numCoords, clusters, membership);
+    writef(clusters_number, observ_num, coordinates_number, clusters, membership);
 
     free(membership);
     free(clusters[0]);
@@ -44,12 +44,12 @@ int main(int argc, char **argv)
     else
         printf(" using array reduction ***\n");
 
-    printf("Number of threads = %d\n", nthreads);
-    printf("Input file:     %s\n", filename);
-    printf("numObjs       = %d\n", numObjs);
-    printf("numCoords     = %d\n", numCoords);
-    printf("numClusters   = %d\n", numClusters);
-    printf("threshold     = %.4f\n", threshold);
-    printf("Computation timing = %10.4f sec\n", clustering_timing);
+    printf("Number of threads\t= %d\n", threads_number);
+    printf("Input file:\t%s\n", filename);
+    printf("observation number\t= %d\n", observ_num);
+    printf("coordinates_number\t= %d\n", coordinates_number);
+    printf("clusters_number\t= %d\n", clusters_number);
+    printf("threshold\t= %.4f\n", threshold);
+    printf("Computation timing = %10.4f sec\n", start);
     return(0);
 }

@@ -7,8 +7,8 @@
 #include <time.h>
 #include <omp.h>
 
-float** omp_kmeans(int, float**, int, int, int, float, int*, int);
-float** seq_kmeans(float**, int, int, int, float, int*, int*);
+float** parallel_kmeans(int, float**, int, int, int, float, int*, int);
+float** sequential_kmeans(float**, int, int, int, float, int*, int*);
 
 float compute_distance(int, float*, float*);
 int closest_cluster(int, int, float*, float**);

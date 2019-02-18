@@ -114,8 +114,7 @@ int writef(int clusters_number, int observ_num, int coordinates_number,
 
 
 /* return an array of cluster centers of size [clusters_number][coordinates_number]       */
-float** parallel_kmeans(int is_perform_atomic, /* in: */
-                   float **observations,           /* in: [observ_num][coordinates_number] */
+float** parallel_kmeans(float **observations,           /* in: [observ_num][coordinates_number] */
                    int coordinates_number,         /* no. coordinates */
                    int observ_num,           /* no. observations */
                    int clusters_number,       /* no. clusters */
@@ -157,97 +156,34 @@ float** parallel_kmeans(int is_perform_atomic, /* in: */
     for (i=1; i<clusters_number; i++)
         new_clusters[i] = new_clusters[i-1] + coordinates_number;
 
-    if (!is_perform_atomic) {
-        /* each thread calculates new centers using a private space,
-           then thread 0 does an array reduction on them. This approach
-           should be faster */
-        local_new_cluster_size = (int**) malloc(threads_number * sizeof(int*));
-        local_new_cluster_size[0] = (int*)  calloc(threads_number*clusters_number,
-                                                 sizeof(int));
-        for (i=1; i<threads_number; i++)
-            local_new_cluster_size[i] = local_new_cluster_size[i-1]+clusters_number;
-
-        /* local_new_clusters is a 3D array */
-        local_new_clusters =(float***)malloc(threads_number * sizeof(float**));
-        local_new_clusters[0] =(float**) malloc(threads_number * clusters_number * sizeof(float*));
-        for (i=1; i<threads_number; i++)
-            local_new_clusters[i] = local_new_clusters[i-1] + clusters_number;
-        for (i=0; i<threads_number; i++) {
-            for (j=0; j<clusters_number; j++) {
-                local_new_clusters[i][j] = (float*)calloc(coordinates_number, sizeof(float));
-            }
-        }
-    }
-
     do {
         diff = 0.0;
 
-        if (is_perform_atomic) {
-            #pragma omp parallel for \
-                    private(i,j,index) \
-                    firstprivate(observ_num,clusters_number,coordinates_number) \
-                    shared(observations,clusters,membership,new_clusters,new_cluster_size) \
-                    schedule(static) \
-                    reduction(+:diff)
-            for (i=0; i<observ_num; i++) {
-                /* find the array index of nestest cluster center */
-                index = closest_cluster(clusters_number, coordinates_number, observations[i],
-                                             clusters);
+        #pragma omp parallel for \
+                private(i,j,index) \
+                firstprivate(observ_num,clusters_number,coordinates_number) \
+                shared(observations,clusters,membership,new_clusters,new_cluster_size) \
+                schedule(static) \
+                reduction(+:diff)
+        for (i=0; i<observ_num; i++) {
+            /* find the array index of nestest cluster center */
+            index = closest_cluster(clusters_number, coordinates_number, observations[i],
+                                         clusters);
 
-                /* if membership changes, increase diff by 1 */
-                if (membership[i] != index) diff += 1.0;
+            /* if membership changes, increase diff by 1 */
+            if (membership[i] != index) diff += 1.0;
 
-                /* assign the membership to object i */
-                membership[i] = index;
+            /* assign the membership to object i */
+            membership[i] = index;
 
-                /* update new cluster centers : sum of observations located within */
+            /* update new cluster centers : sum of observations located within */
+            #pragma omp atomic
+            new_cluster_size[index]++;
+            for (j=0; j<coordinates_number; j++)
                 #pragma omp atomic
-                new_cluster_size[index]++;
-                for (j=0; j<coordinates_number; j++)
-                    #pragma omp atomic
-                    new_clusters[index][j] += observations[i][j];
-            }
+                new_clusters[index][j] += observations[i][j];
         }
-        else {
-            #pragma omp parallel shared(observations,clusters,membership,local_new_clusters,local_new_cluster_size)
-            {
-                int tid = omp_get_thread_num();
-                #pragma omp for \
-                            private(i,j,index) \
-                            firstprivate(observ_num,clusters_number,coordinates_number) \
-                            schedule(static) \
-                            reduction(+:diff)
-                for (i=0; i<observ_num; i++) {
-                    /* find the array index of nestest cluster center */
-                    index = closest_cluster(clusters_number, coordinates_number,
-                                                 observations[i], clusters);
 
-                    /* if membership changes, increase diff by 1 */
-                    if (membership[i] != index) diff += 1.0;
-
-                    /* assign the membership to object i */
-                    membership[i] = index;
-
-                    /* update new cluster centers : sum of all observations located
-                       within (average will be performed later) */
-                    local_new_cluster_size[tid][index]++;
-                    for (j=0; j<coordinates_number; j++)
-                        local_new_clusters[tid][index][j] += observations[i][j];
-                }
-            } /* end of #pragma omp parallel */
-
-            /* let the main thread perform the array reduction */
-            for (i=0; i<clusters_number; i++) {
-                for (j=0; j<threads_number; j++) {
-                    new_cluster_size[i] += local_new_cluster_size[j][i];
-                    local_new_cluster_size[j][i] = 0.0;
-                    for (k=0; k<coordinates_number; k++) {
-                        new_clusters[i][k] += local_new_clusters[j][i][k];
-                        local_new_clusters[j][i][k] = 0.0;
-                    }
-                }
-            }
-        }
 
         /* average the sum and replace old cluster centers with new_clusters */
         for (i=0; i<clusters_number; i++) {
@@ -262,16 +198,6 @@ float** parallel_kmeans(int is_perform_atomic, /* in: */
         diff /= observ_num;
     } while (diff > threshold && loop++ < 500);
 
-    if (!is_perform_atomic) {
-        free(local_new_cluster_size[0]);
-        free(local_new_cluster_size);
-
-        for (i=0; i<threads_number; i++)
-            for (j=0; j<clusters_number; j++)
-                free(local_new_clusters[i][j]);
-        free(local_new_clusters[0]);
-        free(local_new_clusters);
-    }
     free(new_clusters[0]);
     free(new_clusters);
     free(new_cluster_size);
@@ -281,8 +207,6 @@ float** parallel_kmeans(int is_perform_atomic, /* in: */
 
 int main(int argc, char **argv)
 {
-    int is_perform_atomic;
-
     int coordinates_number, observ_num;
     int *membership;    /* [observ_num] */
     float **observations;       /* [observ_num][coordinates_number] data observations */
@@ -293,8 +217,6 @@ int main(int argc, char **argv)
     int clusters_number = atoi(argv[2]);
     int threads_number = atoi(argv[3]);
 
-    is_perform_atomic = 0;
-
     omp_set_num_threads(threads_number);
 
     observations = readf(filename, &observ_num, &coordinates_number);
@@ -304,7 +226,7 @@ int main(int argc, char **argv)
     /* membership: the cluster id for each data object */
     start = omp_get_wtime();
     membership = (int*) malloc(observ_num * sizeof(int));
-    clusters = parallel_kmeans(is_perform_atomic, observations, coordinates_number, observ_num,
+    clusters = parallel_kmeans(observations, coordinates_number, observ_num,
                           clusters_number, threshold, membership, threads_number);
     free(observations[0]);
     free(observations);
@@ -318,11 +240,6 @@ int main(int argc, char **argv)
     free(clusters);
 
     printf("\n___Parallel OpenMP Kmeans___");
-    if (is_perform_atomic)
-        printf(" using atomic pragma ***\n");
-    else
-        printf(" using array reduction ***\n");
-
     printf("Number of threads\t= %d\n", threads_number);
     printf("Input file:\t%s\n", filename);
     printf("observation number\t= %d\n", observ_num);

@@ -11,8 +11,8 @@ To run:
      o "parallel_main" for OpenMP version
      o "simple_main" for simple sequential version
 
-  * To run the parallel version: "parallel_main filename num_clusters number_of_threads"
-  * To run the sequential version: simple_main filename num_clusters"
+  * To run the parallel version: "parallel_kmeans filename num_clusters number_of_threads"
+  * To run the sequential version: sequential_kmeans filename num_clusters"
 
 Input file format:
 The executables read an input file that stores the data points to be
